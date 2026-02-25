@@ -103,6 +103,7 @@ void GuitarStrumSequencerProcessor::prepareToPlay (double sampleRate, int /*samp
     lastStepBeat = -1.0;
     voicer.reset();
     pendingEvents.clear();
+    voicingForUIValid = false;
 
     // Sync step velocities from parameters
     for (int i = 0; i < StepSequencer::STEP_COUNT; ++i)
@@ -160,6 +161,7 @@ void GuitarStrumSequencerProcessor::updateVoicedNotes()
     if (heldNotes.empty())
     {
         voicedNotes.clear();
+        voicingForUIValid = false;
         return;
     }
 
@@ -191,6 +193,9 @@ void GuitarStrumSequencerProcessor::updateVoicedNotes()
         }
         std::sort (pitches.begin(), pitches.end());
         voicedNotes = pitches;
+
+        currentVoicingForUI = result;
+        voicingForUIValid = true;
 
         if (ccPositionUsed)
         {

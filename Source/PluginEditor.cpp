@@ -4,7 +4,7 @@ GuitarStrumSequencerEditor::GuitarStrumSequencerEditor (GuitarStrumSequencerProc
     : AudioProcessorEditor (p),
       processorRef (p),
       stepSequencerComp (p.getAPVTS(), p.currentStepForUI),
-      controlPanelComp (p.getAPVTS())
+      controlPanelComp (p.getAPVTS(), p)
 {
     setLookAndFeel (&customLookAndFeel);
     setSize (700, 500);

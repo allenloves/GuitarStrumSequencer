@@ -1,9 +1,14 @@
 #include "ControlPanelComponent.h"
 #include "CustomLookAndFeel.h"
+#include "../PluginProcessor.h"
 
-ControlPanelComponent::ControlPanelComponent (juce::AudioProcessorValueTreeState& a)
-    : apvts (a)
+ControlPanelComponent::ControlPanelComponent (juce::AudioProcessorValueTreeState& a,
+                                                GuitarStrumSequencerProcessor& processor)
+    : apvts (a),
+      fretboardComp (processor)
 {
+    addAndMakeVisible (fretboardComp);
+
     // Strum controls
     setupSlider (strumSpeedSlider, strumSpeedLabel, "Speed", " ms");
     strumSpeedSlider.setRange (5, 50, 1);
@@ -129,6 +134,13 @@ void ControlPanelComponent::resized()
     humanizeLabel.setBounds (leftArea.getX(), startY + rowHeight + 4, labelWidth, rowHeight);
     humanizeSlider.setBounds (leftArea.getX() + labelWidth, startY + rowHeight + 4,
                               leftArea.getWidth() - labelWidth, rowHeight);
+
+    // Fretboard diagram below humanize
+    int fretboardY = startY + (rowHeight + 4) * 2;
+    int fretboardHeight = bounds.getHeight() - fretboardY;
+    if (fretboardHeight > 20)
+        fretboardComp.setBounds (leftArea.getX(), fretboardY,
+                                 leftArea.getWidth(), fretboardHeight);
 
     // === Right panel: Guitar Voicing ===
     auto rightArea = bounds.withTrimmedLeft (halfWidth + 10);

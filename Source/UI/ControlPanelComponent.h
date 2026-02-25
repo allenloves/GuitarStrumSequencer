@@ -2,11 +2,15 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+#include "FretboardComponent.h"
+
+class GuitarStrumSequencerProcessor;
 
 class ControlPanelComponent : public juce::Component
 {
 public:
-    ControlPanelComponent (juce::AudioProcessorValueTreeState& apvts);
+    ControlPanelComponent (juce::AudioProcessorValueTreeState& apvts,
+                           GuitarStrumSequencerProcessor& processor);
     ~ControlPanelComponent() override;
 
     void paint (juce::Graphics& g) override;
@@ -59,6 +63,8 @@ private:
                       const juce::String& suffix = "");
     void setupComboBox (juce::ComboBox& box, juce::Label& label, const juce::String& text,
                         const juce::StringArray& items);
+
+    FretboardComponent fretboardComp;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ControlPanelComponent)
 };

@@ -31,6 +31,7 @@ target_sources(GuitarStrumSequencer
         Source/UI/StepSequencerComponent.cpp
         Source/UI/ControlPanelComponent.cpp
         Source/UI/CustomLookAndFeel.cpp
+        Source/UI/FretboardComponent.cpp
 )
 
 target_compile_definitions(GuitarStrumSequencer

@@ -40,7 +40,13 @@ public:
     // Expose current step for GUI highlight
     std::atomic<int> currentStepForUI { -1 };
 
+    // Expose current voicing for fretboard diagram
+    VoicingResult getVoicingForUI() const { return currentVoicingForUI; }
+    bool isVoicingForUIValid() const { return voicingForUIValid.load(); }
+
 private:
+    VoicingResult currentVoicingForUI;
+    std::atomic<bool> voicingForUIValid { false };
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
