@@ -1,0 +1,73 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone JUCE
+        run: git clone --depth 1 https://github.com/juce-framework/JUCE.git
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Zip AU
+        run: |
+          cd build/GuitarStrumSequencer_artefacts/Release/AU
+          zip -r "$GITHUB_WORKSPACE/GuitarStrumSequencer-AU-macOS.zip" *.component
+
+      - name: Zip VST3
+        run: |
+          cd build/GuitarStrumSequencer_artefacts/Release/VST3
+          zip -r "$GITHUB_WORKSPACE/GuitarStrumSequencer-VST3-macOS.zip" *.vst3
+
+      - name: Upload AU
+        uses: actions/upload-artifact@v4
+        with:
+          name: GuitarStrumSequencer-AU-macOS
+          path: GuitarStrumSequencer-AU-macOS.zip
+          retention-days: 90
+
+      - name: Upload VST3 (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: GuitarStrumSequencer-VST3-macOS
+          path: GuitarStrumSequencer-VST3-macOS.zip
+          retention-days: 90
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone JUCE
+        run: git clone --depth 1 https://github.com/juce-framework/JUCE.git
+
+      - name: Configure
+        run: cmake -B build
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Zip VST3
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build\GuitarStrumSequencer_artefacts\Release\VST3\*" -DestinationPath "GuitarStrumSequencer-VST3-Windows.zip"
+
+      - name: Upload VST3 (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: GuitarStrumSequencer-VST3-Windows
+          path: GuitarStrumSequencer-VST3-Windows.zip
+          retention-days: 90
