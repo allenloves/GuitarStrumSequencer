@@ -1,13 +1,14 @@
 # Guitar Strum Sequencer
 
-A JUCE-based MIDI FX plugin that turns held chords into realistic guitar strumming patterns. Available as AU and VST3.
+Hold down any chord on your keyboard and let Guitar Strum Sequencer turn it into a lively, realistic guitar strumming pattern — no guitarist needed. It figures out how a real guitar would voice your chord, then strums it string by string with natural timing and feel. Perfect for singer-songwriters, producers, and anyone who wants instant acoustic (or electric) guitar rhythms in their DAW.
+
+Available as **AU**, **VST3**, and **Standalone** on macOS and Windows.
 
 ![Screenshot](screenshot.png)
 
 ## Features
 
-- **16-Step Sequencer** — Per-step velocity control with adjustable subdivision (8th / 16th notes)
-- **Auto Strum Direction** — Even steps strum down (low to high), odd steps strum up (high to low)
+- **16-Step Sequencer** — Per-step velocity and direction control (Down / Up / Rest) with adjustable subdivision (8th / 16th notes)
 - **Guitar Voicing Engine** — Revoices keyboard chords into playable guitar fingerings across 6 strings
   - Exhaustive search with scoring system (pitch coverage, root in bass, fret span, open strings, etc.)
   - Automatic position tracking with proximity-based search
@@ -15,6 +16,10 @@ A JUCE-based MIDI FX plugin that turns held chords into realistic guitar strummi
   - Capo support (0–12)
   - Configurable fret span, max fret, and search range
   - CC-based position override
+- **Fretboard Chord Diagram** — Real-time display of the current voicing on a guitar fretboard
+  - Finger numbers (1–4) shown inside dots
+  - Capo bar indicator with physical fret labels
+  - Adaptive fret range that frames the chord cleanly
 - **Strum Speed** — Adjustable inter-string delay (5–50 ms)
 - **Humanize** — Velocity variation, per-note timing jitter, and global step timing offset
 - **Multi-Channel Output** — Optional per-string MIDI channel assignment (for multi-sample guitar libraries)
