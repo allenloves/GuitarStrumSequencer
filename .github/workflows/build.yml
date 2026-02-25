@@ -21,28 +21,16 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Zip AU
+      - name: Zip macOS plugins
         run: |
-          cd build/GuitarStrumSequencer_artefacts/Release/AU
-          zip -r "$GITHUB_WORKSPACE/GuitarStrumSequencer-AU-macOS.zip" *.component
+          cd build/GuitarStrumSequencer_artefacts/Release
+          zip -r "$GITHUB_WORKSPACE/GuitarStrumSequencer-macOS.zip" AU/*.component VST3/*.vst3
 
-      - name: Zip VST3
-        run: |
-          cd build/GuitarStrumSequencer_artefacts/Release/VST3
-          zip -r "$GITHUB_WORKSPACE/GuitarStrumSequencer-VST3-macOS.zip" *.vst3
-
-      - name: Upload AU
+      - name: Upload macOS
         uses: actions/upload-artifact@v4
         with:
-          name: GuitarStrumSequencer-AU-macOS
-          path: GuitarStrumSequencer-AU-macOS.zip
-          retention-days: 90
-
-      - name: Upload VST3 (macOS)
-        uses: actions/upload-artifact@v4
-        with:
-          name: GuitarStrumSequencer-VST3-macOS
-          path: GuitarStrumSequencer-VST3-macOS.zip
+          name: GuitarStrumSequencer-macOS
+          path: GuitarStrumSequencer-macOS.zip
           retention-days: 90
 
   build-windows:
@@ -63,11 +51,11 @@ jobs:
       - name: Zip VST3
         shell: pwsh
         run: |
-          Compress-Archive -Path "build\GuitarStrumSequencer_artefacts\Release\VST3\*" -DestinationPath "GuitarStrumSequencer-VST3-Windows.zip"
+          Compress-Archive -Path "build\GuitarStrumSequencer_artefacts\Release\VST3\*" -DestinationPath "GuitarStrumSequencer-Windows.zip"
 
-      - name: Upload VST3 (Windows)
+      - name: Upload Windows
         uses: actions/upload-artifact@v4
         with:
-          name: GuitarStrumSequencer-VST3-Windows
-          path: GuitarStrumSequencer-VST3-Windows.zip
+          name: GuitarStrumSequencer-Windows
+          path: GuitarStrumSequencer-Windows.zip
           retention-days: 90
