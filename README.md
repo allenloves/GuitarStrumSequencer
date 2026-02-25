@@ -27,19 +27,11 @@ Available as **AU**, **VST3**, and **Standalone** on macOS and Windows.
 
 ## Installation
 
-### Pre-built (macOS)
+### Pre-built
 
-Copy from the `Release/` folder to your system plugin directories:
+Download the latest release from the [Releases page](https://github.com/allenloves/GuitarStrumSequencer/releases) — available for macOS (AU + VST3 + Standalone) and Windows (VST3).
 
-```bash
-# AU
-cp -R "Release/Guitar Strum Sequencer.component" ~/Library/Audio/Plug-Ins/Components/
-
-# VST3
-cp -R "Release/Guitar Strum Sequencer.vst3" ~/Library/Audio/Plug-Ins/VST3/
-```
-
-Then rescan plugins in your DAW.
+Copy the plugins to your system plugin directories and rescan in your DAW.
 
 ### Build from Source
 
