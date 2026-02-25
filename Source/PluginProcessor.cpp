@@ -23,7 +23,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout GuitarStrumSequencerProcesso
 
     params.push_back (std::make_unique<juce::AudioParameterFloat> (
         juce::ParameterID { "humanize", 1 }, "Humanize",
-        juce::NormalisableRange<float> (0.0f, 100.0f, 1.0f), 0.0f));
+        juce::NormalisableRange<float> (0.0f, 100.0f, 1.0f), 50.0f));
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (
         juce::ParameterID { "guitarVoicing", 1 }, "Guitar Voicing", true));
