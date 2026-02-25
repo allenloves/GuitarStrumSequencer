@@ -1,9 +1,5 @@
 build/
 JUCE/
 .DS_Store
-
-# Ignore plugins except in Release folder
 *.component
 *.vst3
-!Release/*.component
-!Release/*.vst3
