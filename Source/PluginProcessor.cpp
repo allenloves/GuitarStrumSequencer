@@ -300,6 +300,8 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
 
     // Process input MIDI
     juce::MidiBuffer outputBuffer;
+    bool noteOnInBlock = false;
+    bool allNotesReleasedInBlock = false;
 
     for (const auto metadata : midiMessages)
     {
@@ -308,6 +310,8 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
         if (msg.isNoteOn())
         {
             insertSorted (heldNotes, msg.getNoteNumber());
+            noteOnInBlock = true;
+            allNotesReleasedInBlock = false;
             if (voicingEnabled)
                 updateVoicedNotes();
         }
@@ -316,11 +320,8 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
             removeFromArray (heldNotes, msg.getNoteNumber());
             if (heldNotes.empty())
             {
-                // Don't kill active strum notes or clear pending events.
-                // The current strum was committed at the step boundary and
-                // should finish playing.  The next step will generate a new
-                // strum (or kill active notes if still empty).
                 voicedNotes.clear();
+                allNotesReleasedInBlock = true;
             }
             else if (voicingEnabled)
             {
@@ -352,6 +353,27 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
         {
             outputBuffer.addEvent (msg, metadata.samplePosition);
         }
+    }
+
+    // When all notes are released (no new notes followed), kill the active
+    // strum immediately.  This prevents an extra strum when the step event
+    // fires in a different buffer than the note-offs (common at MIDI region
+    // boundaries).  Chord transitions within the same block are safe because
+    // noteOn resets allNotesReleasedInBlock to false.
+    if (allNotesReleasedInBlock && heldNotes.empty())
+    {
+        for (auto& note : strumEngine.getActiveNotes())
+        {
+            outputBuffer.addEvent (
+                juce::MidiMessage::noteOff (note.channel, note.pitch, (juce::uint8) 0), 0);
+        }
+        strumEngine.clearActiveNotes();
+        pendingEvents.erase (
+            std::remove_if (pendingEvents.begin(), pendingEvents.end(),
+                [] (const PendingMidiEvent& e) { return e.message.isNoteOn(); }),
+            pendingEvents.end());
+        lastStrumNotes.clear();
+        lastStepHadNoNotes = true;
     }
 
     // Get transport info
@@ -467,10 +489,11 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
 
                 if (notes.empty())
                 {
-                    // Grace period: on the first empty step, let the old strum
-                    // ring (chord transition may span a buffer boundary).  On
-                    // the second consecutive empty step, kill active notes.
-                    if (lastStepHadNoNotes)
+                    // When all keys are released, kill immediately — no chord
+                    // transition is happening.  Only use the one-step grace
+                    // period when some keys are still held (rare voicing edge
+                    // case) to bridge buffer boundaries.
+                    if (lastStepHadNoNotes || heldNotes.empty())
                         killActiveNotesAt (event.beatPosition);
                     lastStepHadNoNotes = true;
                     continue;
@@ -512,7 +535,9 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
             // When the track is selected, Logic may deliver chord-change
             // MIDI one buffer late.  If the chord changed since the last
             // strum (or the strum was killed), regenerate immediately.
-            if (isPlaying && lastStepBeat >= 0.0)
+            // Only re-trigger when a noteOn arrived in this block —
+            // note-offs changing the voicing should NOT cause extra strums.
+            if (isPlaying && lastStepBeat >= 0.0 && noteOnInBlock)
             {
                 auto currentNotes = getNotesToStrum();
                 bool needsRetrigger = false;
