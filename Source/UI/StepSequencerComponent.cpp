@@ -55,11 +55,31 @@ void StepSequencerComponent::setStepFromMouse (const juce::MouseEvent& event)
 
 void StepSequencerComponent::mouseDown (const juce::MouseEvent& event)
 {
+    auto arrowY = getLocalBounds().getBottom() - 16;
+    if (event.getPosition().getY() >= arrowY)
+    {
+        // Click in arrow area — cycle direction: Down → Up → Rest → Down
+        int step = getStepAtPosition (event.getPosition());
+        auto dirParamId = "dir" + juce::String (step + 1);
+        if (auto* param = apvts.getParameter (dirParamId))
+        {
+            int current = static_cast<int> (apvts.getRawParameterValue (dirParamId)->load());
+            int next = (current + 1) % 3;
+            param->setValueNotifyingHost (param->convertTo0to1 (static_cast<float> (next)));
+        }
+        repaint();
+        return;
+    }
+
     setStepFromMouse (event);
 }
 
 void StepSequencerComponent::mouseDrag (const juce::MouseEvent& event)
 {
+    auto arrowY = getLocalBounds().getBottom() - 16;
+    if (event.getPosition().getY() >= arrowY)
+        return; // don't adjust velocity when dragging in arrow area
+
     setStepFromMouse (event);
 }
 
@@ -127,12 +147,24 @@ void StepSequencerComponent::paint (juce::Graphics& g)
     for (int i = 0; i < StepSequencer::STEP_COUNT; ++i)
     {
         auto arrowX = area.getX() + i * barWidth;
-        bool isDown = (i % 2 == 0);
+
+        auto dirParamId = "dir" + juce::String (i + 1);
+        int dirVal = 0;
+        if (auto* param = apvts.getRawParameterValue (dirParamId))
+            dirVal = static_cast<int> (param->load());
+        auto dir = static_cast<StepDirection> (dirVal);
 
         g.setColour (i == activeStep ? CustomLookAndFeel::accentBright : CustomLookAndFeel::textSecondary);
-        g.drawText (isDown ? juce::String (juce::CharPointer_UTF8 ("\xe2\x96\xbc"))
-                           : juce::String (juce::CharPointer_UTF8 ("\xe2\x96\xb2")),
-                    arrowX, arrowY, barWidth, 14, juce::Justification::centred);
+
+        juce::String symbol;
+        if (dir == StepDirection::Down)
+            symbol = juce::String (juce::CharPointer_UTF8 ("\xe2\x96\xbc"));
+        else if (dir == StepDirection::Up)
+            symbol = juce::String (juce::CharPointer_UTF8 ("\xe2\x96\xb2"));
+        else
+            symbol = juce::String (juce::CharPointer_UTF8 ("\xe2\x9c\x95"));
+
+        g.drawText (symbol, arrowX, arrowY, barWidth, 14, juce::Justification::centred);
     }
 }
 

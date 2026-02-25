@@ -71,6 +71,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout GuitarStrumSequencerProcesso
             juce::NormalisableRange<float> (0.0f, 127.0f, 1.0f), defaultStepVelocities[i]));
     }
 
+    // Step directions 1-16 (default: alternating Down/Up)
+    for (int i = 0; i < StepSequencer::STEP_COUNT; ++i)
+    {
+        auto id = "dir" + juce::String (i + 1);
+        auto name = "Dir " + juce::String (i + 1);
+        int defaultDir = (i % 2 == 0) ? 0 : 1; // Down for even, Up for odd
+        params.push_back (std::make_unique<juce::AudioParameterChoice> (
+            juce::ParameterID { id, 2 }, name,
+            juce::StringArray { "Down", "Up", "Rest" }, defaultDir));
+    }
+
     return { params.begin(), params.end() };
 }
 
@@ -87,6 +98,7 @@ void GuitarStrumSequencerProcessor::prepareToPlay (double sampleRate, int /*samp
     lastStepHadNoNotes = false;
     lastStrumNotes.clear();
     lastStepIndex = 0;
+    lastStepDirection = StepDirection::Down;
     lastStepVelocity = 0.0f;
     lastStepBeat = -1.0;
     voicer.reset();
@@ -423,10 +435,28 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
                 // Always update UI step indicator
                 currentStepForUI.store (event.stepIndex);
 
+                // Read per-step direction from parameter
+                auto dirParamId = "dir" + juce::String (event.stepIndex + 1);
+                auto direction = static_cast<StepDirection> (
+                    static_cast<int> (apvts.getRawParameterValue (dirParamId)->load()));
+
                 // Record step info for potential re-trigger (even if empty/ghost)
                 lastStepIndex = event.stepIndex;
+                lastStepDirection = direction;
                 lastStepBeat = event.beatPosition;
                 lastStepVelocity = event.velocity;
+
+                // Rest step — silence and skip
+                if (direction == StepDirection::Rest)
+                {
+                    killActiveNotesAt (event.beatPosition - 0.0001);
+                    pendingEvents.erase (
+                        std::remove_if (pendingEvents.begin(), pendingEvents.end(),
+                            [] (const PendingMidiEvent& e) { return e.message.isNoteOn(); }),
+                        pendingEvents.end());
+                    lastStepHadNoNotes = false;
+                    continue;
+                }
 
                 auto notes = getNotesToStrum();
 
@@ -459,7 +489,7 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
 
                 // Generate strum with beat-based offsets
                 auto strumNotes = strumEngine.generateStrum (
-                    notes, event.stepIndex, event.velocity,
+                    notes, direction, event.velocity,
                     strumSpeed, humanize, multiChannel, bpm);
 
                 // Schedule each strum note at stepBeat + individual beatOffset
@@ -490,7 +520,7 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
                         needsRetrigger = true;   // chord changed since last strum
                 }
 
-                if (needsRetrigger)
+                if (needsRetrigger && lastStepDirection != StepDirection::Rest)
                 {
                     killActiveNotesAt (blockStartBeat);
 
@@ -501,7 +531,7 @@ void GuitarStrumSequencerProcessor::processBlock (juce::AudioBuffer<float>& audi
                         pendingEvents.end());
 
                     auto strumNotes = strumEngine.generateStrum (
-                        currentNotes, lastStepIndex, lastStepVelocity,
+                        currentNotes, lastStepDirection, lastStepVelocity,
                         strumSpeed, humanize, multiChannel, bpm);
 
                     for (auto& sn : strumNotes)

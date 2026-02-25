@@ -4,6 +4,8 @@
 #include <vector>
 #include <functional>
 
+enum class StepDirection : int { Down = 0, Up = 1, Rest = 2 };
+
 class StepSequencer
 {
 public:

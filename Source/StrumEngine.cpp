@@ -12,7 +12,7 @@ int StrumEngine::clamp (int value, int minVal, int maxVal)
 }
 
 std::vector<StrumNote> StrumEngine::generateStrum (const std::vector<int>& notesToStrum,
-                                                    int stepIndex,
+                                                    StepDirection direction,
                                                     float velocity,
                                                     float strumSpeedMs,
                                                     float humanizeAmount,
@@ -25,8 +25,7 @@ std::vector<StrumNote> StrumEngine::generateStrum (const std::vector<int>& notes
 
     double msPerBeat = 60000.0 / tempo;
 
-    // Direction: even step = Down (low->high), odd step = Up (high->low)
-    bool isDownStrum = (stepIndex % 2 == 0);
+    bool isDownStrum = (direction == StepDirection::Down);
 
     std::vector<int> ordered = notesToStrum;
     if (! isDownStrum)

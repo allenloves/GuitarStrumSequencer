@@ -61,6 +61,7 @@ private:
     // Re-trigger state: detect chord changes that arrive one buffer late
     std::vector<int> lastStrumNotes;
     int lastStepIndex = 0;
+    StepDirection lastStepDirection = StepDirection::Down;
     float lastStepVelocity = 0.0f;
     double lastStepBeat = -1.0;
 

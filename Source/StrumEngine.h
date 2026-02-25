@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_audio_basics/juce_audio_basics.h>
+#include "StepSequencer.h"
 #include <vector>
 #include <random>
 
@@ -25,7 +26,7 @@ public:
 
     // Generate strum notes with beat-based offsets
     std::vector<StrumNote> generateStrum (const std::vector<int>& notesToStrum,
-                                          int stepIndex,
+                                          StepDirection direction,
                                           float velocity,
                                           float strumSpeedMs,
                                           float humanizeAmount, // 0-1
